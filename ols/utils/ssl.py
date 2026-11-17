@@ -81,7 +81,10 @@ def get_ciphers(sec_profile: Optional[TLSSecurityProfile]) -> str:
         return constants.DEFAULT_SSL_CIPHERS
 
     # security profile is set -> we need to retrieve ciphers to be allowed
-    ciphers = tls.ciphers_as_string(sec_profile.ciphers, sec_profile.profile_type)
+    ciphers = (
+        tls.ciphers_as_string(sec_profile.ciphers, sec_profile.profile_type)
+        or constants.DEFAULT_SSL_CIPHERS
+    )
     logger.info("Allowing following ciphers: %s", ciphers)
     return ciphers
 

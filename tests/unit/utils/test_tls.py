@@ -1,6 +1,7 @@
 """Unit tests for TLS security profiles manipulation."""
 
 import ssl
+from typing import Optional, get_type_hints
 
 import pytest
 
@@ -165,3 +166,16 @@ def test_ciphers_as_string_with_default(ciphers_for_tls_profile):
     expected_ciphers = ciphers
     for expected_cipher in expected_ciphers:
         assert expected_cipher in ciphers
+
+
+def test_min_tls_version_type_annotations():
+    """Check that min_tls_version type hints match its runtime str/None contract."""
+    hints = get_type_hints(tls.min_tls_version)
+    assert hints["specified_tls_version"] == Optional[str]
+    assert hints["tls_profile"] == Optional[str]
+    assert hints["return"] == Optional[str]
+
+    resolved = tls.min_tls_version(None, "IntermediateType")
+    assert isinstance(resolved, str)
+    assert tls.min_tls_version(None, "Custom") is None
+    assert tls.min_tls_version(None, None) is None

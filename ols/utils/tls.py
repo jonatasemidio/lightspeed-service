@@ -35,14 +35,14 @@ class TLSProtocolVersion(StrEnum):
 
 
 # Minimal TLS versions required for each TLS profile
-MIN_TLS_VERSIONS = {
+MIN_TLS_VERSIONS: dict[str, TLSProtocolVersion] = {
     TLSProfiles.OLD_TYPE: TLSProtocolVersion.VERSION_TLS_10,
     TLSProfiles.INTERMEDIATE_TYPE: TLSProtocolVersion.VERSION_TLS_12,
     TLSProfiles.MODERN_TYPE: TLSProtocolVersion.VERSION_TLS_13,
 }
 
 # TLS ciphers defined for each TLS profile
-TLS_CIPHERS = {
+TLS_CIPHERS: dict[str, list[str]] = {
     TLSProfiles.OLD_TYPE: [
         "TLS_AES_128_GCM_SHA256",
         "TLS_AES_256_GCM_SHA384",
@@ -85,10 +85,12 @@ TLS_CIPHERS = {
 
 
 def ssl_tls_version(
-    tls_protocol_version: Optional[TLSProtocolVersion],
+    tls_protocol_version: Optional[str],
 ) -> Optional[ssl.TLSVersion]:
     """Convert script with TLS protocol version into its numeric code."""
-    tls_versions = {
+    if tls_protocol_version is None:
+        return None
+    tls_versions: dict[str, ssl.TLSVersion] = {
         TLSProtocolVersion.VERSION_TLS_10: ssl.TLSVersion.TLSv1,
         TLSProtocolVersion.VERSION_TLS_11: ssl.TLSVersion.TLSv1_1,
         TLSProtocolVersion.VERSION_TLS_12: ssl.TLSVersion.TLSv1_2,
@@ -99,13 +101,14 @@ def ssl_tls_version(
 
 def min_tls_version(
     specified_tls_version: Optional[str],
-    tls_profile: TLSProfiles,
-) -> Optional[ssl.TLSVersion]:
+    tls_profile: Optional[str],
+) -> Optional[str]:
     """Retrieve minimal TLS version for the profile or for the current profile configuration."""
-    min_tls_version_specified = specified_tls_version
-    if min_tls_version_specified is None:
-        return MIN_TLS_VERSIONS[tls_profile]
-    return min_tls_version_specified
+    if specified_tls_version is not None:
+        return specified_tls_version
+    if tls_profile is None:
+        return None
+    return MIN_TLS_VERSIONS.get(tls_profile, None)
 
 
 def ciphers_from_list(ciphers: Optional[list[str]]) -> Optional[str]:
@@ -115,15 +118,13 @@ def ciphers_from_list(ciphers: Optional[list[str]]) -> Optional[str]:
     return ", ".join(ciphers)
 
 
-def ciphers_for_tls_profile(tls_profile: TLSProfiles) -> Optional[str]:
+def ciphers_for_tls_profile(tls_profile: str) -> Optional[str]:
     """Retrieve list of ciphers for specified TLS profile."""
     ciphers = TLS_CIPHERS.get(tls_profile, None)
     return ciphers_from_list(ciphers)
 
 
-def ciphers_as_string(
-    ciphers: Optional[list[str]], tls_profile: TLSProfiles
-) -> Optional[str]:
+def ciphers_as_string(ciphers: Optional[list[str]], tls_profile: str) -> Optional[str]:
     """Retrieve ciphers as one string for custom list of TLS profile-based list."""
     ciphers_as_str = ciphers_from_list(ciphers)
     if ciphers_as_str is None:
