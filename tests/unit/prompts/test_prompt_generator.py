@@ -574,3 +574,29 @@ def test_solr_docs_tool_guidance_without_byok_uses_mandatory_supplement():
     assert "ALWAYS call" in template
     assert "do not rely on memory alone" in template
     assert "domain-specific knowledge" not in template
+
+
+def test_generate_prompt_default_lists_are_independent() -> None:
+    """Ensure omitted or None rag_context and history create independent lists."""
+    first = GeneratePrompt(query)
+    second = GeneratePrompt(query)
+
+    assert first._rag_context == []
+    assert second._rag_context == []
+    assert first._rag_context is not second._rag_context
+
+    assert first._history == []
+    assert second._history == []
+    assert first._history is not second._history
+
+    first._rag_context.append(format_retrieved_chunk("isolated context"))
+    first._history.append(HumanMessage("isolated history"))
+
+    second_prompt, second_values = second.generate_prompt("gpt-4o-mini")
+    assert "context" not in second_values
+    assert "chat_history" not in second_values
+    assert second_prompt.input_variables == ["query"]
+
+    explicit_none = GeneratePrompt(query, rag_context=None, history=None)
+    assert explicit_none._rag_context == []
+    assert explicit_none._history == []

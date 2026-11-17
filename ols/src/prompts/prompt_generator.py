@@ -25,8 +25,8 @@ class GeneratePrompt:
     def __init__(
         self,
         query: str,
-        rag_context: list[str] = [],
-        history: list[BaseMessage] = [],
+        rag_context: Optional[list[str]] = None,
+        history: Optional[list[BaseMessage]] = None,
         system_instruction: str = prompts.QUERY_SYSTEM_INSTRUCTION,
         tool_call: bool = False,
         mode: QueryMode = QueryMode.ASK,
@@ -37,8 +37,8 @@ class GeneratePrompt:
     ) -> None:
         """Initialize prompt generator."""
         self._query = query
-        self._rag_context = rag_context
-        self._history = history
+        self._rag_context: list[str] = [] if rag_context is None else rag_context
+        self._history: list[BaseMessage] = [] if history is None else history
         self._sys_instruction = system_instruction
         self._tool_call = tool_call
         self._mode = mode
@@ -73,7 +73,11 @@ class GeneratePrompt:
 
     def generate_prompt(self, model: str) -> tuple[ChatPromptTemplate, dict]:
         """Generate prompt."""
-        prompt_message = []
+        prompt_message: list[
+            SystemMessagePromptTemplate
+            | MessagesPlaceholder
+            | HumanMessagePromptTemplate
+        ] = []
         sys_intruction = self._sys_instruction.strip()
         llm_input_values: dict = {
             "query": self._query,
