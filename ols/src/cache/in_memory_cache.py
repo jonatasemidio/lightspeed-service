@@ -31,6 +31,8 @@ class InMemoryCache(Cache):
 
     def initialize_cache(self, config: InMemoryCacheConfig) -> None:
         """Initialize the InMemoryCache."""
+        if config.max_entries is None:
+            raise ValueError("Invalid max_entries")
         # pylint: disable=W0201
         self.capacity: int = int(config.max_entries)
         self.total_entries: int = 0
@@ -41,7 +43,7 @@ class InMemoryCache(Cache):
 
     def get(
         self, user_id: str, conversation_id: str, skip_user_id_check: bool = False
-    ) -> list[CacheEntry]:
+    ) -> list[CacheEntry] | None:
         """Get the value associated with the given key.
 
         Args:

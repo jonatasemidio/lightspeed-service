@@ -45,7 +45,7 @@ class Cache(ABC):
     @abstractmethod
     def get(
         self, user_id: str, conversation_id: str, skip_user_id_check: bool
-    ) -> list[CacheEntry]:
+    ) -> list[CacheEntry] | None:
         """Abstract method to retrieve a value from the cache.
 
         Args:

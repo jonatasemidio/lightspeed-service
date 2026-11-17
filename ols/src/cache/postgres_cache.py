@@ -169,7 +169,7 @@ class PostgresCache(Cache, PostgresBase):
     @connection
     def get(
         self, user_id: str, conversation_id: str, skip_user_id_check: bool = False
-    ) -> list[CacheEntry]:
+    ) -> list[CacheEntry] | None:
         """Get the value associated with the given key.
 
         Args:

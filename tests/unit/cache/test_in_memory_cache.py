@@ -1,4 +1,7 @@
-"""Unit tests for InMemoryCache class."""
+"""Unit tests for InMemoryCache."""
+
+from types import NoneType
+from typing import get_args, get_type_hints
 
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage
@@ -6,7 +9,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from ols import constants
 from ols.app.models.config import InMemoryCacheConfig
 from ols.app.models.models import CacheEntry
-from ols.src.cache.in_memory_cache import InMemoryCache
+from ols.src.cache.in_memory_cache import Cache, InMemoryCache
 from ols.utils import suid
 
 conversation_id = suid.get_suid()
@@ -338,9 +341,23 @@ def test_get_improper_conversation_id(cache):
         cache.get(constants.DEFAULT_USER_UID, "this-is-not-valid-uuid")
 
 
-def test_singleton_pattern():
+def test_singleton_pattern() -> None:
     """Test if in memory cache exists as one instance in memory."""
     mc = InMemoryCacheConfig({"max_entries": "10"})
     cache1 = InMemoryCache(mc)
     cache2 = InMemoryCache(mc)
     assert cache1 is cache2
+
+
+def test_initialize_cache_missing_max_entries(cache) -> None:
+    """Test initialize_cache raises ValueError when max_entries is None."""
+    empty_config = InMemoryCacheConfig()
+    with pytest.raises(ValueError, match="Invalid max_entries"):
+        cache.initialize_cache(empty_config)
+
+
+def test_get_return_type_annotation() -> None:
+    """Test Cache.get and InMemoryCache.get declare optional return type."""
+    for cls in (Cache, InMemoryCache):
+        return_hint = get_type_hints(cls.get)["return"]
+        assert NoneType in get_args(return_hint)

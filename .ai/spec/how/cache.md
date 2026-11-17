@@ -37,7 +37,7 @@ olsconfig.yaml
 Endpoint / HistorySupport
   -> config.conversation_cache.get(user_id, conversation_id, skip_user_id_check)
   -> construct_key validates IDs (UUID format via check_suid)
-  -> InMemory: dict lookup, promote key to front of deque, return list[CacheEntry]
+  -> InMemory: dict lookup, promote key to front of deque, return list[CacheEntry] | None
   -> Postgres: @connection ensures live connection, SELECT value WHERE (user_id, conversation_id),
                deserialize JSON via MessageDecoder, return list[CacheEntry]
 ```
@@ -69,7 +69,7 @@ The compound cache key is `"{user_id}:{conversation_id}"`.
 
 | Method | Signature | Contract |
 |---|---|---|
-| `get` | `(user_id, conversation_id, skip_user_id_check) -> list[CacheEntry]` | Returns list of cache entries or `None`/`[]` if not found. |
+| `get` | `(user_id, conversation_id, skip_user_id_check) -> list[CacheEntry] \| None` | Returns list of cache entries or `None`/`[]` if not found. |
 | `insert_or_append` | `(user_id, conversation_id, cache_entry, skip_user_id_check) -> None` | Creates new conversation or appends to existing. Triggers capacity eviction. |
 | `delete` | `(user_id, conversation_id, skip_user_id_check) -> bool` | Deletes all entries for a conversation. Returns `True` if something was deleted. |
 | `list` | `(user_id, skip_user_id_check) -> list[ConversationData]` | Returns all conversations for a user, sorted by `last_message_timestamp` descending. |
