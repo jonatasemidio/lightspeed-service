@@ -315,7 +315,9 @@ def generic_llm_error(error: Exception, media_type: str) -> str:
         "Error while obtaining answer for user question (streaming): error_type=%s",
         type(error).__name__,
     )
-    logger.exception(error)
+    logger.error(
+        "%s", error, exc_info=error if isinstance(error, BaseException) else None
+    )
     status_code, response, cause = errors_parsing.parse_generic_llm_error(error)
     logger.error(
         "Parsed LLM error (streaming): status_code=%d, response_text=%s, cause=%s",

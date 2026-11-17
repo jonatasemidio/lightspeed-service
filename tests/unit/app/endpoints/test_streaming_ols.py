@@ -191,13 +191,15 @@ def test_prompt_too_long_error():
     )
 
 
-def test_generic_llm_error():
+def test_generic_llm_error(caplog):
     """Test generic_llm_error."""
     prefixed_msg = f"{_LLM_BACKEND_PREFIX} {DEFAULT_ERROR_MESSAGE}"
+    caplog.clear()
     assert (
         generic_llm_error("error", constants.MEDIA_TYPE_TEXT)
         == f"{prefixed_msg}: An unexpected error occurred"
     )
+    assert "NoneType: None" not in caplog.text
 
     assert generic_llm_error("error", constants.MEDIA_TYPE_JSON) == format_stream_data(
         {
@@ -207,6 +209,19 @@ def test_generic_llm_error():
                 "cause": "An unexpected error occurred",
             },
         }
+    )
+    assert "NoneType: None" not in caplog.text
+
+    caplog.clear()
+    runtime_err = RuntimeError("backend failure")
+    assert (
+        generic_llm_error(runtime_err, constants.MEDIA_TYPE_TEXT)
+        == f"{prefixed_msg}: An unexpected error occurred"
+    )
+    assert "NoneType: None" not in caplog.text
+    assert any(
+        record.exc_info and record.exc_info[1] is runtime_err
+        for record in caplog.records
     )
 
 

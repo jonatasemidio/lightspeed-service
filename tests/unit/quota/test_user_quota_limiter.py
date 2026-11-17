@@ -605,8 +605,8 @@ def test_increase_quota_on_disconnected_db():
             assert q.connected()
 
 
-def test_ensure_available_quota():
-    """Test the operation to increase quota."""
+def test_ensure_available_quota(caplog):
+    """Test the operation to ensure available quota."""
     quota_limit = 0
     additional_quota = 0
     user_id = "1234"
@@ -638,3 +638,6 @@ def test_ensure_available_quota():
             # check available quota
             with pytest.raises(Exception, match=exception_message):
                 q.ensure_available_quota(user_id)
+
+            assert f"Quota exceed: {exception_message}" in caplog.text
+            assert "NoneType: None" not in caplog.text
