@@ -231,8 +231,17 @@ async def log_requests_responses(
         response.body_iterator = stream_response_body(response.body_iterator)
     else:
         # Convert non-streaming response to a streaming response to log its body
-        response_body = response.body
-        response = StreamingResponse(stream_response_body(iter([response_body])))
+        response_body = bytes(response.body)
+
+        async def single_chunk_body(chunk: bytes) -> AsyncGenerator[bytes, None]:
+            yield chunk
+
+        response = StreamingResponse(
+            stream_response_body(single_chunk_body(response_body)),
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            media_type=response.media_type,
+        )
 
     return response
 
